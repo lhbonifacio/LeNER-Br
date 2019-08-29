@@ -338,8 +338,15 @@ class NERModel(BaseModel):
         labels = [indxToTag[item] for items in labels for item in items]
         f1 = f1_score(labels, preds, average='micro', labels=['JURISPRUDENCIA', 'LOCAL', 'TEMPO',  'PESSOA', 'LEGISLACAO', 'ORGANIZACAO'])
         acc = accuracy_score(labels, preds)
-
-        return {"acc": 100*acc, "f1": 100*f1}
+        # seqeval
+        # add I- prefix to tags (necessary to seqeval)
+        preds_iob = [["O" if item == "O" else "I-" + item for item in l] for l in preds]
+        labels_iob = [["O" if item == "O" else "I-" + item for item in l] for l in labels]
+        seqeval_f1 = metrics.f1_score(labels_iob, preds_iob, average='micro')
+        seqeval_acc = metrics.accuracy_score(labels_iob, preds_iob)
+        # seqeval
+        #return {"acc": 100*acc, "f1": 100*f1}
+        return {"acc": 100*seqeval_acc, "f1": 100*seqeval_f1}
 
 
     def predict(self, words_raw):
